@@ -33,14 +33,14 @@ class _UpScale(nn.Sequential):
 class Flatten(nn.Module):
 
     def forward(self, input):
-        output = input.view(input.size(0), -1)
+        output = input.reshape(input.size(0), -1)
         return output
 
 
 class Reshape(nn.Module):
 
     def forward(self, input):
-        output = input.view(-1, 1024, 4, 4)  # channel * 4 * 4
+        output = input.reshape(-1, 1024, 4, 4)  # channel * 4 * 4
 
         return output
 
@@ -51,9 +51,9 @@ class _PixelShuffler(nn.Module):
         rh, rw = (2, 2)
         oh, ow = h * rh, w * rw
         oc = c // (rh * rw)
-        out = input.view(batch_size, rh, rw, oc, h, w)
+        out = input.reshape(batch_size, rh, rw, oc, h, w)
         out = out.permute(0, 3, 4, 1, 5, 2).contiguous()
-        out = out.view(batch_size, oc, oh, ow)  # channel first
+        out = out.reshape(batch_size, oc, oh, ow)  # channel first
 
         return out
 

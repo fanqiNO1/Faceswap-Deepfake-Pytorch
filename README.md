@@ -1,7 +1,10 @@
 # faceswap-pytorch
+
 Deepfakes_Faceswap using pytorch   *JUST FOR STUDY AND RESEARCH*
 
-This is pytorch version compared with https://github.com/joshua-wu/deepfakes_faceswap which using Keras.
+> This is pytorch version compared with https://github.com/joshua-wu/deepfakes_faceswap which using Keras.
+> 
+> This is a modernized fork of the pytorch version fork. 
 
 ![Processing image](https://github.com/Oldpan/faceswap-pytorch/blob/master/Screenshot%20from%202018-04-16%2015-36-47.png)
 
@@ -12,15 +15,17 @@ https://pan.baidu.com/s/197RIMB_Po96RZNFzV-wqjA    PW : z4wa
 
 ## Requirement:
 ```
-Python == 3.6
-pytorch >= 0.4.0
+Python == 3.8
+pytorch == 1.9.0
 ```
-pytorch-1.0 is supported.
- You need a modern GPU and CUDA support for better performance.
+You need a modern GPU and CUDA support for better performance. *These requirements have been upgraded from the original head branch so as to fit modern needs and accelerate the training process.*
 
 ## How to run:
-`python train.py` for simple run
 
-if you don't use trained model,only after about 1000 epoch can you see the result and after 10000 epoch the result is the same with the above picture.
+```
+python train.py
+```
 
-ps : The Pytorch trains a little faster than Keras using tf backend.
+if you don't use trained model, only after about 1000 epoch can you see the result and after 10000 epoch the result is the same with the above picture.
+
+P.S. The Pytorch trains a little faster than Keras using tf backend.
