@@ -13,6 +13,10 @@ def var_to_np(img_var):
     return img_var.data.cpu().numpy()
 
 
+def criterion(output, target):
+    return nn.L1Loss()(output, target)
+
+
 class _ConvLayer(nn.Sequential):
     def __init__(self, input_features, output_features):
         super(_ConvLayer, self).__init__()
@@ -54,7 +58,6 @@ class _PixelShuffler(nn.Module):
         out = input.reshape(batch_size, rh, rw, oc, h, w)
         out = out.permute(0, 3, 4, 1, 5, 2)
         out = out.reshape(batch_size, oc, oh, ow)  # channel first
-
         return out
 
 
@@ -69,24 +72,25 @@ class Autoencoder(nn.Module):
             _ConvLayer(512, 1024),
             Flatten(),
             nn.Linear(1024 * 4 * 4, 1024),
-            nn.Linear(1024, 1024 * 4 * 4),
-            Reshape(),
-            _UpScale(1024, 512),
         )
 
         self.decoder_A = nn.Sequential(
+            nn.Linear(1024, 1024 * 4 * 4),
+            Reshape(),
+            _UpScale(1024, 512),
             _UpScale(512, 256),
             _UpScale(256, 128),
-            _UpScale(128, 64),
-            Conv2d(64, 3, kernel_size=5, padding=1),
+            _UpScale(128, 3),
             nn.Sigmoid(),
         )
 
         self.decoder_B = nn.Sequential(
+            nn.Linear(1024, 1024 * 4 * 4),
+            Reshape(),
+            _UpScale(1024, 512),
             _UpScale(512, 256),
             _UpScale(256, 128),
-            _UpScale(128, 64),
-            Conv2d(64, 3, kernel_size=5, padding=1),
+            _UpScale(128, 3),
             nn.Sigmoid(),
         )
 

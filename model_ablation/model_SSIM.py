@@ -2,7 +2,7 @@ import torch
 import torch.utils.data
 from torch import nn
 from padding_same_conv import Conv2d
-
+import pytorch_msssim
 
 def toTensor(img):
     img = torch.from_numpy(img.transpose((0, 3, 1, 2)))
@@ -12,6 +12,8 @@ def toTensor(img):
 def var_to_np(img_var):
     return img_var.data.cpu().numpy()
 
+def criterion(output, target):
+    return 1 - pytorch_msssim.SSIM()(output, target)
 
 class _ConvLayer(nn.Sequential):
     def __init__(self, input_features, output_features):

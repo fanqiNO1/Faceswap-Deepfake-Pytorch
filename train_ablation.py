@@ -14,11 +14,12 @@ import torch.utils.data
 from torch import nn, optim
 import torch.backends.cudnn as cudnn
 
-from models import Autoencoder, toTensor, var_to_np
 from util import get_image_paths, load_images, stack_images
 from training_data import get_training_data
 
 parser = argparse.ArgumentParser(description='DeepFake-Pytorch')
+parser.add_argument('--type', type=str, default="", metavar='N',
+                    help='type of model in ablation experiment')
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--epochs', type=int, default=15000, metavar='N',
@@ -29,7 +30,8 @@ parser.add_argument('--seed', type=int, default=0, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--log-interval', type=int, default=100, metavar='N',
                     help='how many batches to wait before logging training status')
-parser.add_argument('--output-dir', type=str, default='output', metavar='N', help='output directory')
+parser.add_argument('--output-dir', type=str, default='output', metavar='N', 
+                    help='output directory')
 
 args = parser.parse_args()
 
@@ -51,18 +53,30 @@ images_A = load_images(images_A) / 255.0
 images_B = load_images(images_B) / 255.0
 images_A += images_B.mean(axis=(0, 1, 2)) - images_A.mean(axis=(0, 1, 2))
 
+if args.type == "":
+    raise("Please specify the type of model in ablation experiment")
+elif args.type == "symmetric":
+    from model_ablation.model_symmetric import Autoencoder, toTensor, var_to_np, criterion
+elif args.type == "L2loss":
+    from model_ablation.model_L2loss import Autoencoder, toTensor, var_to_np, criterion
+elif args.type == "SSIM":
+    from model_ablation.model_SSIM import Autoencoder, toTensor, var_to_np, criterion
+else:
+    raise(f"The type {args.type} is not supported")
+
+
 model = Autoencoder().to(device)
 
 print('===> Try to resume from checkpoint')
-if os.path.isdir('./checkpoints/checkpoint'):
+if os.path.isdir(f'./checkpoints/{args.type}_checkpoint'):
     try:
         max_epoch = 0
-        for checkpoint_i in os.listdir('./checkpoints/checkpoint'):
+        for checkpoint_i in os.listdir(f'./checkpoints/{args.type}_checkpoint'):
             if checkpoint_i.endswith('.t7'):
                 epoch = int(checkpoint_i.split('_')[1].split('.')[0])
                 if epoch > max_epoch:
                     max_epoch = epoch
-        checkpoint = torch.load(f'./checkpoints/checkpoint/autoencoder_{max_epoch}.t7')
+        checkpoint = torch.load(f'./checkpoints/{args.type}_checkpoint/autoencoder_{max_epoch}.t7')
         model.load_state_dict(checkpoint['state'])
         start_epoch = checkpoint['epoch']
         print('===> Load last checkpoint data')
@@ -75,7 +89,6 @@ else:
     print('===> Start from scratch')
 
 
-criterion = nn.L1Loss()
 optimizer_1 = optim.Adam([{'params': model.encoder.parameters()},
                           {'params': model.decoder_A.parameters()}]
                          , lr=5e-5, betas=(0.5, 0.999))
@@ -132,9 +145,9 @@ if __name__ == "__main__":
                 'state': model.state_dict(),
                 'epoch': epoch
             }
-            if not os.path.isdir('./checkpoints/checkpoint'):
-                os.mkdir('./checkpoints/checkpoint')
-            torch.save(state, f'./checkpoints/checkpoint/autoencoder_{epoch}.t7')
+            if not os.path.isdir(f'./checkpoints/{args.type}_checkpoint'):
+                os.mkdir(f'./checkpoints/{args.type}_checkpoint')
+            torch.save(state, f'./checkpoints/{args.type}_checkpoint/autoencoder_{epoch}.t7')
 
             figure_A = np.stack([
                 test_A,

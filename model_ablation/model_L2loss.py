@@ -13,6 +13,10 @@ def var_to_np(img_var):
     return img_var.data.cpu().numpy()
 
 
+def criterion(output, target):
+    return nn.MSELoss()(output, target)
+
+
 class _ConvLayer(nn.Sequential):
     def __init__(self, input_features, output_features):
         super(_ConvLayer, self).__init__()
